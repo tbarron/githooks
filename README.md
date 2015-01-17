@@ -1,4 +1,4 @@
-# githooks - git hook scripts for various purposes
+# git hook scripts for various purposes
 
 ### commit-msg.ver
 
