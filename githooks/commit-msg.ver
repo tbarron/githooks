@@ -47,9 +47,6 @@ def main(args):
     if version.replace('Version:', '').strip() == '':
         version = get_version()
 
-    if cid.replace('Change-Id:', '').strip() == '':
-        cid = get_change_id(msg)
-
     newname = save_new(filename, payload, version, cid, comments)
     os.rename(filename, filename + ".old")
     os.rename(newname, filename)
