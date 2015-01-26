@@ -1,7 +1,9 @@
+import contextlib
 import os
 import pdb
 import pytest
 import sys
+
 
 # -----------------------------------------------------------------------------
 def pytest_addoption(parser):
@@ -12,6 +14,7 @@ def pytest_addoption(parser):
     parser.addoption("--dbg", action="append", default=[],
                      help="start debugger on named test or all")
     sys.path.append(os.getcwd())
+
 
 # -----------------------------------------------------------------------------
 def pytest_runtest_setup(item):
@@ -34,16 +37,13 @@ def pytest_runtest_setup(item):
     else:
         pytest.dbgfunc = lambda: None
 
-    # jfm = 'jenkins_fail'
-    # if item.get_marker(jfm):
-    #     if os.path.exists('jenkins') or jfm in skip_l:
-    #         pytest.skip('%s would fail on jenkins' % fqn)
 
-    # slow_m = 'slow'
-    # if item.get_marker('slow'):
-    #     if item.config.getvalue('fast') or slow_m in skip_l:
-    #         pytest.skip('%s is slow' % fqn)
+# -----------------------------------------------------------------------------
+@contextlib.contextmanager
+def chdir(target):
+    start = os.getcwd()
+    os.chdir(target)
 
-    # for skiptag in item.config.getvalue('skip'):
-    #     if skiptag in fqn:
-    #         pytest.skip("Skiptag '%s' excludes '%s'" % (skiptag, fqn))
+    yield
+
+    os.chdir(start)
