@@ -16,74 +16,52 @@ To use this hook, if your git repository is at $GIT,
 
 """
 import ghlib
+import os
 import pdb
 import pexpect
+import sys
 import time
 
 def main(args):
     """
     Entry point
     """
-    (vhead, vtail) = ghlib.get_version_prefix()
-    (ghead, gtail) = ghlib.git_describe_prefix()
+    if 1 < len(args):
+        pdb.set_trace()
+    vfname = ghlib.get_version_path()
+    (v_full, v_head, v_tail) = ghlib.get_version_ht()
+    (g_full, g_head, g_tail) = ghlib.git_describe_ht()
 
-    if g_pfx == v_pfx and v_cmt != g_cmt + 1:
+    if g_head == v_head and v_tail != g_tail + 1:
         raise SystemExit("""
         Looks like %s should contain %s.%d
-                                    but it's got %s.%d
+                                    but it's got %s
 
         I'd update it for you, but git won't let me. >:(
-        """ % (vfname, v_pfx, g_cmt+1, v_pfx, v_cmt))
-   
-    if not version_staged():
+        """ % (os.path.relpath(vfname), v_head, g_tail+1, v_full))
+
+    if not version_staged(vfname):
         raise SystemExit("""
         %s is not staged. Looks like you need to make sure it contains the right
         version and do
-          
+
             git add %s
 
         then try your commit again.
-        """ % (vfname, vfname))
-         
-def get_version():
+        """ % (os.path.relpath(vfname), os.path.relpath(vfname)))
+
+
+def version_staged(vfname):
     """
-    Scan the git repo for a file named 'version.py'. We assume it contains a
-    statement that sets __version__ and we use that to get the current version.
+    Return True if file *vfname* is staged, otherwise False
     """
-    groot = catch_stdout('')
-vfname = 'hpssic/version.py'
-exec(open(vfname).read())
-g = [x.strip() for x in pexpect.run("git describe").split('-')]
-v = __version__.split('.')
-g_pfx = '.'.join(g[0].split('.')[0:2])
-v_pfx = '.'.join(v[0:2])
+    r = ghlib.catch_stdout('git status --porc')
+    staged = False
+    for line in r.split('\n'):
+        if vfname in line and line.startswith(("M  ", "A  ")):
+            staged = True
+    return staged
 
-if 1 == len(g):
-     g_cmt = 0
-else:
-     g_cmt = int(g[-2])
-v_cmt = int(v[-1])
 
-if g_pfx == v_pfx and v_cmt != g_cmt + 1:
-     raise SystemExit("""
-     Looks like %s should contain %s.%d
-                                    but it's got %s.%d
-
-     I'd update it for you, but git won't let me. >:(
-     """ % (vfname, v_pfx, g_cmt+1, v_pfx, v_cmt))
-
-status = pexpect.run("git status --porc")
-staged = False
-for line in status.split("\n"):
-     if vfname in line and line.startswith("M  "):
-          staged = True
-
-if not staged:
-     raise SystemExit("""
-     %s is not staged. Looks like you need to make sure it contains the right
-     version and do
-          
-         git add %s
-
-     then try your commit again.
-     """ % (vfname, vfname))
+if __name__ == '__main__':
+    main(sys.argv)
