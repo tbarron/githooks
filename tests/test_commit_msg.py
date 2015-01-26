@@ -6,6 +6,8 @@ Need tests for
  - pre-commit.ver
  - ghlib.py
 """
+from conftest import chdir
+from githooks import ghlib
 import os
 import pdb
 import pexpect
@@ -14,14 +16,8 @@ import editor
 from githooks import version
 
 # -----------------------------------------------------------------------------
-def contents(path):
-    """
-    Return the contents of a file as a list
-    """
-    f = open(path, 'r')
-    rval = f.readlines()
-    f.close()
-    return rval
+def commit_msg_name(sfx):
+    return os.path.abspath("./githooks/commit-msg." + sfx)
 
 
 # -----------------------------------------------------------------------------
@@ -117,8 +113,112 @@ def test_cmvx_ver(tmpdir):
     q.delete('Change-Id: ')
     q.quit(save=True)
 
-    cmd = ('%s %s' % (commit_msg_name(), path))
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('ver'), path))
+
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert not exp_in_list(exp, z)
+    assert exp_in_list('Version:  ', z, exact=False)
+    assert not exp_in_list('Change-Id: I', z, exact=True)
+    assert not exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
+
+
+# -----------------------------------------------------------------------------
+def test_cmxc_noc(tmpdir):
+    """
+    Version irrelevant, Change-Id not present
+    """
+    pytest.dbgfunc()
+    path = os.path.join(str(tmpdir), 'example.noc')
+
+    q = editor.editor(path, content=egdata())
+    q.delete('(Version|Change-Id): ')
+    q.quit(save=True)
+
+    cmd = ('%s %s' % (commit_msg_name('chgid'), path))
+
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert not exp_in_list('Version:', z, exact=False)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
+
+
+# -----------------------------------------------------------------------------
+def test_cmxc_mtc(tmpdir):
+    """
+    Version irrelevant, Change-Id is empty
+    """
+    pytest.dbgfunc()
+    path = os.path.join(str(tmpdir), 'example.mtc')
+
+    q = editor.editor(path, content=egdata())
+    q.delete('(Version): ')
+    q.sub('Change-Id:\s+.*', 'Change-Id:  ')
+    q.quit(save=True)
+
+    cmd = " ".join([commit_msg_name('chgid'), path])
+
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert not exp_in_list('Version:', z, exact=False)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
+
+
+# -----------------------------------------------------------------------------
+def test_cmxc_chid(tmpdir):
+    """
+    Version irrelevant, Change-Id is present
+    """
+    pytest.dbgfunc()
+    path = os.path.join(str(tmpdir), 'example.chid')
+
+    q = editor.editor(path, content=egdata())
+    q.delete('(Version): ')
+    q.quit(save=True)
+
+    cmd = " ".join([commit_msg_name('chgid'), path])
+
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+
+    assert not exp_in_list('Version:', z, exact=False)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
+
+
+# -----------------------------------------------------------------------------
+def test_cmvc_nov_noc(tmpdir):
+    """
+    Version not present, Change-Id not present
+    """
+    pytest.dbgfunc()
+    path = os.path.join(str(tmpdir), 'example.nov_noc')
+
+    q = editor.editor(path, content=egdata())
+    q.delete('(Version|Change-Id): ')
+    q.quit(save=True)
+
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('vc'), path))
+
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
 
     exp = 'Version:   2014.1217.46'
     z = contents(path)
