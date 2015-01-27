@@ -39,26 +39,26 @@ def egdata():
 
 
 # -----------------------------------------------------------------------------
-def commit_msg_name():
-    return "./githooks/commit-msg.ver"
+def exp_in_list(exp, l, exact=True):
+    m = [x for x in l if exp in x]
+    if m:
+        if exact:
+            return(exp == m[0])
+        else:
+            return(exp in m[0] and len(exp) < len(m[0]))
+    else:
+        return False
 
 
 # -----------------------------------------------------------------------------
-def test_nov_noc(tmpdir):
-    """
-    Version not present, Change-Id not present
-    """
-    path = os.path.join(str(tmpdir), 'example.nov_noc')
-    q = editor.editor(path, content=egdata())
-    q.delete('(Version|Change-Id): ')
-    q.quit(save=True)
-
-    cmd = ('%s %s' % (commit_msg_name(), path))
-    pexpect.run(cmd)
-
-    z = contents(path)
-    assert any(['Version:   2015.0112.x' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
+def setup_version(tmpdir):
+    vstr = "2015.0112.x"
+    vpath = os.path.join(str(tmpdir), 'version.py')
+    exp = 'Version:   %s' % vstr
+    v = editor.editor(vpath,
+                      ['__version__ = "%s"' % vstr])
+    v.quit(save=True)
+    return exp
 
 
 # -----------------------------------------------------------------------------
@@ -68,17 +68,22 @@ def test_cmvx_nov(tmpdir):
     """
     pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.nov_noc')
+
     q = editor.editor(path, content=egdata())
     q.delete('(Version|Change-Id): ')
     q.quit(save=True)
 
-    cmd = ('%s %s' % (commit_msg_name(), path))
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('ver'), path))
 
-    exp = 'Version:   %s' % version.__version__
-    z = contents(path)
-    assert any([exp in l for l in z])
-    assert all(['Change-Id: I' not in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert not exp_in_list('Change-Id: I', z)
+    assert not exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
@@ -88,18 +93,23 @@ def test_cmvx_mtv(tmpdir):
     """
     pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.nov_noc')
+
     q = editor.editor(path, content=egdata())
     q.sub('Version:\s+.*', 'Version:')
     q.delete('Change-Id: ')
     q.quit(save=True)
 
-    cmd = ('%s %s' % (commit_msg_name(), path))
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('ver'), path))
 
-    exp = 'Version:   %s' % version.__version__
-    z = contents(path)
-    assert any([exp in l for l in z])
-    assert all(['Change-Id: I' not in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert not exp_in_list('Change-Id: I', z, exact=True)
+    assert not exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
@@ -109,6 +119,7 @@ def test_cmvx_ver(tmpdir):
     """
     pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.nov_noc')
+
     q = editor.editor(path, content=egdata())
     q.delete('Change-Id: ')
     q.quit(save=True)
@@ -220,165 +231,216 @@ def test_cmvc_nov_noc(tmpdir):
         z = ghlib.catch_stdout('git init')
         z = ghlib.catch_stdout(cmd)
 
-    exp = 'Version:   2014.1217.46'
-    z = contents(path)
-    assert any([exp in l for l in z])
-    assert all(['Change-Id: I' not in l for l in z])
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
-def test_nov_mtc(tmpdir):
+def test_cmvc_nov_mtc(tmpdir):
     """
     Version not present, Change-Id is empty
     """
     pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.nov_mtc')
+
     q = editor.editor(path, content=egdata())
     q.delete('(Version): ')
     q.sub('Change-Id:\s+.*', 'Change-Id:  ')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('vc'), path))
 
-    z = contents(path)
-    assert any(['Version:   2015.0112.x' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
 
-    
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
+
+
 # -----------------------------------------------------------------------------
-def test_nov_chid(tmpdir):
+def test_cmvc_nov_chid(tmpdir):
     """
     Version not present, Change-Id is present
     """
+    pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.nov_chid')
+
     q = editor.editor(path, content=egdata())
     q.delete('(Version): ')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('vc'), path))
 
-    z = contents(path)
-    assert any(['Version:   2015.0112.x' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list('Version:   2015.0112.x', z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
-def test_mtv_noc(tmpdir):
+def test_cmvc_mtv_noc(tmpdir):
     """
     Version is empty, Change-Id not present
     """
+    pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.mtv_noc')
+
     q = editor.editor(path, content=egdata())
     q.sub('Version:\s+.*', 'Version:')
     q.delete('Change-Id:')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = ('%s %s' % (commit_msg_name('vc'), path))
 
-    z = contents(path)
-    assert any(['Version:   2015.0112.x' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
-    assert all(['Change-Id: I75803' not in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
-def test_mtv_mtc(tmpdir):
+def test_cmvc_mtv_mtc(tmpdir):
     """
     Version is empty, Change-Id is empty
     """
-    path = os.path.join(str(tmpdir), 'example.mtv_noc')
+    pytest.dbgfunc()
+    path = os.path.join(str(tmpdir), 'example.mtv_mtc')
+
     q = editor.editor(path, content=egdata())
     q.sub('Version:\s+.*', 'Version:')
     q.sub('Change-Id:\s.*', 'Change-Id:')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = " ".join([commit_msg_name('vc'), path])
 
-    z = contents(path)
-    assert any(['Version:   2015.0112.x' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
-    assert all(['Change-Id: I75803' not in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert not exp_in_list('Change-Id: I75803', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
-def test_mtv_chid(tmpdir):
+def test_cmvc_mtv_chid(tmpdir):
     """
     Version is empty, Change-Id is present
     """
+    pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.mtv_noc')
+
     q = editor.editor(path, content=egdata())
     q.sub('Version:\s+.*', 'Version:')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    cmd = " ".join([commit_msg_name('vc'), path])
 
-    z = contents(path)
-    assert any(['Version:   2015.0112.x' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
-    assert any(['Change-Id: I75803' not in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert not exp_in_list('Change-Id: I75803', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
-def test_ver_noc(tmpdir):
+def test_cmvc_ver_noc(tmpdir):
     """
     Version is present, Change-Id is not
     """
+    pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.ver_noc')
+
     q = editor.editor(path, content=egdata())
     q.delete('(Change-Id): ')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    exp = ghlib.select('Version:', egdata())
+    cmd = " ".join([commit_msg_name('vc'), path])
 
-    z = contents(path)
-    assert any(['Version:   2014.1217.46' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
 
 
 # -----------------------------------------------------------------------------
-def test_ver_mtc(tmpdir):
+def test_cmvc_ver_mtc(tmpdir):
     """
     Version is present, Change-Id is empty
     """
+    pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.ver_mtc')
+
     q = editor.editor(path, content=egdata())
     q.sub('Change-Id:\s+.*', 'Change-Id:')
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
+    exp = setup_version(tmpdir)
+    exp = ghlib.select('Version:', egdata())
+    cmd = " ".join([commit_msg_name('vc'), path])
 
-    z = contents(path)
-    assert any(['Version:   2014.1217.46' in l for l in z])
-    assert any(['Change-Id: I' in l for l in z])
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
 
-    
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: I', z, exact=False)
+    assert "\n\n\n" not in ''.join(z)
+
+
 # -----------------------------------------------------------------------------
-def test_ver_chid(tmpdir):
+def test_cmvc_ver_chid(tmpdir):
     """
     Version is present, Change-Id is present
     """
+    pytest.dbgfunc()
     path = os.path.join(str(tmpdir), 'example.ver_chid')
+
     q = editor.editor(path, content=egdata())
     q.quit(save=True)
 
-    # cmd = ('./githooks/commit-msg %s' % path)
-    cmd = " ".join([commit_msg_name(), path])
-    pexpect.run(cmd)
 
-    z = contents(path)
-    assert any(['Version:   2014.1217.46' in l for l in z])
-    assert any(['Change-Id: Ia9c08' in l for l in z])
+    exp = setup_version(tmpdir)
+    exp = ghlib.select('Version:', egdata())
+    cmd = " ".join([commit_msg_name('vc'), path])
+
+    with chdir(str(tmpdir)):
+        z = ghlib.catch_stdout('git init')
+        z = ghlib.catch_stdout(cmd)
+
+    z = ghlib.contents(path)
+    assert exp_in_list(exp, z)
+    assert exp_in_list('Change-Id: Ia9c08', z, exact=False)
+
+
