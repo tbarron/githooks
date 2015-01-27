@@ -7,13 +7,11 @@ from conftest import chdir
 import editor
 from githooks import ghlib
 import os
-import pexpect
 import pytest
 
 def test_pcv_0_not_updated(tmpdir):
     """
     Test pre-commit with version.py not updated from last commit
-    !@! replace pexpect.run with ghlib.catch_stdout
     """
     pytest.dbgfunc()
     td = str(tmpdir)
@@ -21,17 +19,17 @@ def test_pcv_0_not_updated(tmpdir):
 
     with chdir(td):
         tag = "2013.1015"
-        pexpect.run('git init')
+        z = ghlib.catch_stdout('git init')
 
         v = open('version.py', 'w')
         v.write('__version__ = "%s"' % tag)
         v.close()
 
-        pexpect.run('git add version.py')
-        pexpect.run('git commit -m inception')
-        pexpect.run('git tag -a -m "version basis" %s' % tag)
+        z = ghlib.catch_stdout('git add version.py')
+        z = ghlib.catch_stdout('git commit -m inception')
+        z = ghlib.catch_stdout('git tag -a -m "version basis" %s' % tag)
 
-        result = pexpect.run(cmd)
+        result = ghlib.catch_stdout(cmd)
         assert 'Looks like version.py should contain' in result
         assert "but it's got " in result
 
@@ -46,20 +44,20 @@ def test_pcv_1_not_staged(tmpdir):
 
     with chdir(td):
         tag = "2013.1015"
-        pexpect.run('git init')
+        z = ghlib.catch_stdout('git init')
 
         v = editor.editor('version.py', ['__version__ = "%s"' % tag])
         v.quit(save=True)
 
-        pexpect.run('git add version.py')
-        pexpect.run('git commit -m inception')
-        pexpect.run('git tag -a -m "version basis" %s' % tag)
+        z = ghlib.catch_stdout('git add version.py')
+        z = ghlib.catch_stdout('git commit -m inception')
+        z = ghlib.catch_stdout('git tag -a -m "version basis" %s' % tag)
 
         v = editor.editor('version.py')
         v.sub('1015', '1015.1')
         v.quit(save=True)
 
-        result = pexpect.run(cmd)
+        result = ghlib.catch_stdout(cmd)
         assert 'is not staged. Looks like you need' in result
         assert "try your commit again." in result
 
@@ -71,20 +69,20 @@ def test_pcv_2_updated_staged(tmpdir):
 
     with chdir(td):
         tag = "2013.1015"
-        pexpect.run('git init')
+        z = ghlib.catch_stdout('git init')
 
         v = editor.editor('version.py', ['__version__ = "%s"' % tag])
         v.quit(save=True)
 
-        pexpect.run('git add version.py')
-        pexpect.run('git commit -m inception')
-        pexpect.run('git tag -a -m "version basis" %s' % tag)
+        z = ghlib.catch_stdout('git add version.py')
+        z = ghlib.catch_stdout('git commit -m inception')
+        z = ghlib.catch_stdout('git tag -a -m "version basis" %s' % tag)
 
         v = editor.editor('version.py')
         v.sub('1015', '1015.1')
         v.quit(save=True)
 
         z = ghlib.catch_stdout('git add version.py')
-        result = pexpect.run(cmd)
+        result = ghlib.catch_stdout(cmd)
 
         assert '' in result

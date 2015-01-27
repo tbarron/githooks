@@ -10,7 +10,6 @@ from conftest import chdir
 from githooks import ghlib
 import os
 import pdb
-import pexpect
 import pytest
 import editor
 from githooks import version

@@ -18,7 +18,6 @@ To use this hook, if your git repository is at $GIT,
 import ghlib
 import os
 import pdb
-import pexpect
 import sys
 import time
 
