@@ -58,7 +58,7 @@ def version_staged(vfname):
     r = ghlib.catch_stdout('git status --porc')
     staged = False
     for line in r.split('\n'):
-        if vfname in line and line.startswith(("M  ", "A  ")):
+        if os.path.relpath(vfname) in line and line.startswith(("M  ", "A  ")):
             staged = True
     return staged
 
