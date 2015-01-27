@@ -42,129 +42,15 @@ def main(args):
 
     filename = a[1]
 
-    msg = contents(filename)
-    (payload, version, cid, comments) = split_msg(msg)
+    msg = ghlib.contents(filename)
+    (payload, version, cid, comments) = ghlib.split_msg(msg)
 
     if version.replace('Version:', '').strip() == '':
         version = ghlib.get_version()
 
-    newname = save_new(filename, payload, version, cid, comments)
+    newname = ghlib.save_new(filename, payload, version, cid, comments)
     os.rename(filename, filename + ".old")
     os.rename(newname, filename)
-
-
-# -----------------------------------------------------------------------------
-def catch_stdout(cmd, input=None):
-    """
-    Run *cmd*, optionally passing string *input* to it on stdin, and return
-    what the process writes to stdout
-    """
-    p = subprocess.Popen(shlex.split(cmd),
-                         stdin=subprocess.PIPE,
-                         stdout=subprocess.PIPE,
-                         stderr=subprocess.PIPE)
-    if input:
-        p.stdin.write(input)
-    (o, e) = p.communicate()
-    if p.returncode == 0:
-        return o
-    else:
-        return ''
-
-
-# -----------------------------------------------------------------------------
-def contents(filename):
-    """
-    Read a file and return its contents
-    """
-    f = open(filename, 'rU')
-    rval = [z.rstrip('\n') for z in f.readlines()]
-    f.close()
-    return rval
-
-
-# -----------------------------------------------------------------------------
-def get_change_id(msg):
-    """
-    Generate a change id line based on the commit message and return it
-    """
-    istr = 'tree '
-    istr += catch_stdout('git write-tree')
-    parent = catch_stdout('git rev-parse "HEAD^0"')
-    if parent:
-        istr += 'parent ' + parent
-    istr += 'author ' + catch_stdout('git var GIT_AUTHOR_IDENT')
-    istr += 'committer ' + catch_stdout('git var GIT_COMMITTER_IDENT')
-    istr += ''.join(msg)
-    rval = catch_stdout('git hash-object -t commit --stdin',
-                        input=istr)
-    return 'Change-Id: I' + rval
-
-
-# -----------------------------------------------------------------------------
-def get_version():
-    """
-    Scan the current git repo for a file named 'version.py'. We assume it
-    contains a statement that sets __version__ and we use that to construct and
-    return a line of the form 'Version:    x.x.x'
-    """
-    groot = catch_stdout('git rev-parse --show-toplevel')
-    for r, d, f in os.walk(groot.strip()):
-        if 'version.py' in f:
-            vpath = os.path.join(r, 'version.py')
-            break
-    vinfo = contents(vpath)
-    eval(compile('\n'.join(vinfo), vpath, 'exec'))
-    rval = "Version:   %s" % locals()["__version__"]
-    return rval
-
-
-# -----------------------------------------------------------------------------
-def save_new(filename, payload, version, cid, comments):
-    """
-    Write *payload*, *version*, *cid*, and *comments* to *filename*.new,
-    returning the new name
-    """
-    newname = filename + ".new"
-    o = open(newname, 'w')
-    o.writelines([p + '\n' for p in payload])
-    if 0 < len(payload[-1]):
-        o.write("\n")
-    o.writelines([version.strip() + '\n'])
-    o.writelines([cid.strip() + '\n'])
-    o.writelines([p + '\n' for p in comments])
-    o.close()
-    return newname
-
-
-# -----------------------------------------------------------------------------
-def split_msg(msg):
-    """
-    Scan *msg* and split it into payload, version line, change id line, and
-    comments and return those components
-    """
-    payload = []
-    comments = []
-    version = ''
-    cid = ''
-    for l in msg:
-        if l.startswith('#'):
-            comments.append(l)
-        elif 'Version:' in l:
-            version = l
-            # if l.strip().replace('Version:', '') == '':
-            #     version = ''
-            # else:
-            #     version = l
-        elif 'Change-Id:' in l:
-            cid = l
-            # if l.strip().replace('Change-Id:', '') == '':
-            #     cid = ''
-            # else:
-            #     cid = l
-        else:
-            payload.append(l)
-    return(payload, version, cid, comments)
 
 
 # -----------------------------------------------------------------------------

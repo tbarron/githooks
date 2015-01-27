@@ -42,6 +42,24 @@ def contents(filename):
 
 
 # -----------------------------------------------------------------------------
+def get_change_id(msg):
+    """
+    Generate a change id line based on the commit message and return it
+    """
+    istr = 'tree '
+    istr += catch_stdout('git write-tree')
+    parent = catch_stdout('git rev-parse "HEAD^0"')
+    if not parent.startswith('ERR:'):
+        istr += 'parent ' + parent
+    istr += 'author ' + catch_stdout('git var GIT_AUTHOR_IDENT')
+    istr += 'committer ' + catch_stdout('git var GIT_COMMITTER_IDENT')
+    istr += '\n'.join(msg)
+    rval = catch_stdout('git hash-object -t commit --stdin',
+                        input=istr)
+    return 'Change-Id: I' + rval
+
+
+# -----------------------------------------------------------------------------
 def get_version():
     """
     Scan the current git repo for a file named 'version.py'. We assume it
@@ -125,6 +143,24 @@ def git_describe_ht():
 
 
 # -----------------------------------------------------------------------------
+def save_new(filename, payload, version, cid, comments):
+    """
+    Write *payload*, *version*, *cid*, and *comments* to *filename*.new,
+    returning the new name
+    """
+    newname = filename + ".new"
+    o = open(newname, 'w')
+    o.writelines([p + '\n' for p in payload])
+    if 0 < len(payload[-1]):
+        o.write("\n")
+    o.writelines([version.strip() + '\n'])
+    o.writelines([cid.strip() + '\n'])
+    o.writelines([p + '\n' for p in comments])
+    o.close()
+    return newname
+
+
+# -----------------------------------------------------------------------------
 def select(needle, haystack):
     """
     Look for string *needle* in list of strings *haystack*. Return the first
@@ -135,3 +171,25 @@ def select(needle, haystack):
         return r[0]
     else:
         return ''
+
+
+# -----------------------------------------------------------------------------
+def split_msg(msg):
+    """
+    Scan *msg* and split it into payload, version line, change id line, and
+    comments and return those components
+    """
+    payload = []
+    comments = []
+    version = ''
+    cid = ''
+    for l in msg:
+        if l.startswith('#'):
+            comments.append(l)
+        elif 'Version:' in l:
+            version = l
+        elif 'Change-Id:' in l:
+            cid = l
+        else:
+            payload.append(l)
+    return(payload, version, cid, comments)
