@@ -1,6 +1,7 @@
 import os
 import shlex
 import subprocess
+import sys
 
 # -----------------------------------------------------------------------------
 def catch_stdout(cmd, input=None):
@@ -82,10 +83,17 @@ def get_version_path():
     groot = catch_stdout('git rev-parse --show-toplevel')
     if groot.startswith('ERR:'):
         groot = '.'
+    vpath = ''
     for r, d, f in os.walk(groot.strip()):
         if 'version.py' in f:
             vpath = os.path.join(r, 'version.py')
             break
+    if vpath == '':
+        vpath_msg = ("\nYou don't have a version.py file. " +
+                     "Here's what it should contain:\n\n" +
+                     "    __version__ = '0.0'\n\n" +
+                     "or whatever version number you want to start with.\n")
+        sys.exit(vpath_msg)
     return vpath
 
 
