@@ -9,6 +9,8 @@ from githooks import ghlib
 import os
 import pytest
 
+
+# -----------------------------------------------------------------------------
 def test_pcv_0_not_updated(tmpdir):
     """
     Test pre-commit with version.py not updated from last commit
@@ -34,6 +36,7 @@ def test_pcv_0_not_updated(tmpdir):
         assert "but it's got " in result
 
 
+# -----------------------------------------------------------------------------
 def test_pcv_1_not_staged(tmpdir):
     """
     Test pre-commit with version.py updated but not staged
@@ -62,7 +65,11 @@ def test_pcv_1_not_staged(tmpdir):
         assert "try your commit again." in result
 
 
+# -----------------------------------------------------------------------------
 def test_pcv_2_updated_staged(tmpdir):
+    """
+    Test pre-commit with version.py updated and staged
+    """
     pytest.dbgfunc()
     td = str(tmpdir)
     cmd = os.path.abspath(os.path.join('.', 'githooks', 'pre-commit.ver'))
@@ -85,4 +92,35 @@ def test_pcv_2_updated_staged(tmpdir):
         z = ghlib.catch_stdout('git add version.py')
         result = ghlib.catch_stdout(cmd)
 
-        assert '' in result
+        assert result == ''
+
+
+# -----------------------------------------------------------------------------
+def test_pcv_3_nonint_seg(tmpdir):
+    """
+    Test pre-commit with a non integer segment at end of version string (e.g.,
+    '-c1' for a release candidate)
+    """
+    pytest.dbgfunc()
+    td = str(tmpdir)
+    cmd = os.path.abspath(os.path.join('.', 'githooks', 'pre-commit.ver'))
+
+    with chdir(td):
+        tag = "2013.1015.c1"
+        z = ghlib.catch_stdout('git init')
+
+        v = editor.editor('version.py', ['__version__ = "%s"' % tag])
+        v.quit(save=True)
+
+        z = ghlib.catch_stdout('git add version.py')
+        z = ghlib.catch_stdout('git commit -m inception')
+        z = ghlib.catch_stdout('git tag -a -m "version basis" %s' % tag)
+
+        v = editor.editor('version.py')
+        v.sub('1015', '1015-c1')
+        v.quit(save=True)
+
+        z = ghlib.catch_stdout('git add version.py')
+        result = ghlib.catch_stdout(cmd)
+
+        assert 'Traceback' not in result

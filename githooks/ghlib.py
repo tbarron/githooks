@@ -1,4 +1,5 @@
 import os
+import re
 import shlex
 import subprocess
 
@@ -92,18 +93,33 @@ def get_version_path():
 # -----------------------------------------------------------------------------
 def get_version_ht():
     """
-    Get the version string and return the head and tail. The head is the first
-    two segments. The tail is the third segment or the empty string if there is
-    no third segment.
+    Get the version string and return the head and tail. The tail is the int
+    parsed from the substring of digits that end the string. (If that's empty,
+    tail is the int value 0.) The head is everything else.
     """
     vs = get_version_string()
-    vl = vs.split('.')
-    head = '.'.join(vl[0:2])
-    if 2 < len(vl):
-        tail = int(vl[2])
+    q = re.match("^(.*?)(\d*)$", vs)
+    head = q.groups()[0]
+    ts = q.groups()[1]
+    if ts:
+        tail = int(ts)
     else:
         tail = 0
-    return (vs, head, tail)
+    return(vs, head, tail)
+
+#     """
+#     Get the version string and return the head and tail. The head is the first
+#     two segments. The tail is the third segment or the empty string if there is
+#     no third segment.
+#     """
+#     vs = get_version_string()
+#     vl = vs.split('.')
+#     head = '.'.join(vl[0:2])
+#     if 2 < len(vl):
+#         tail = int(vl[2])
+#     else:
+#         tail = 0
+#     return (vs, head, tail)
 
 
 # -----------------------------------------------------------------------------

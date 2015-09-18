@@ -66,17 +66,20 @@ def test_get_version_ht_justhead(tmpdir):
     vname = 'version.py'
     pkg = os.path.join(td, 'pkg')
     os.mkdir(pkg)
+    vsh = "2010.1201."
+    vst = "3"
+    vs = vsh + vst
     v = open(os.path.join(pkg, vname), 'w')
-    v.write('__version__ = "2010.1201"\n')
+    v.write('__version__ = "%s"\n' % vs)
     v.close()
 
     with chdir(td):
         ghlib.catch_stdout('git init')
         (full, head, tail) = ghlib.get_version_ht()
 
-    assert full == '2010.1201'
-    assert head == '2010.1201'
-    assert tail == 0
+    assert full == vs
+    assert head == vsh
+    assert tail == int(vst)
 
 
 # -----------------------------------------------------------------------------
@@ -90,17 +93,20 @@ def test_get_version_ht_withtail(tmpdir):
     vname = 'version.py'
     pkg = os.path.join(td, 'pkg')
     os.mkdir(pkg)
+    vsh = "2010.1201."
+    vst = "125"
+    vs = vsh + vst
     v = open(os.path.join(pkg, vname), 'w')
-    v.write('__version__ = "2010.1201.125"\n')
+    v.write('__version__ = "%s"\n' % vs)
     v.close()
 
     with chdir(td):
         ghlib.catch_stdout('git init')
         (full, head, tail) = ghlib.get_version_ht()
 
-    assert full == '2010.1201.125'
-    assert head == '2010.1201'
-    assert tail == 125
+    assert full == vs
+    assert head == vsh
+    assert tail == int(vst)
 
 
 # -----------------------------------------------------------------------------
