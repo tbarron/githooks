@@ -32,6 +32,10 @@ def main():
     if o['--debug'] or o['-d']:
         pdb.set_trace()
 
+    if o['--version']:
+        print(version.__version__)
+        sys.exit()
+
     for k in ['list', 'install', 'show', 'remove']:
         if o[k]:
             f = getattr(sys.modules[__name__], "_".join(['gh', k]))
