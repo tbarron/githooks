@@ -3,5 +3,6 @@ dist
 githooks.egg-info
 __pycache__
 pytest.ini
+cmsg
 *.pyc
 *~

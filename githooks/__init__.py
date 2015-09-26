@@ -23,10 +23,16 @@ Options:
    --version        Show version
    -g               Install hook script dire
 """
+try:
+    from githooks import version
+except:
+    pass
 import pdb
 from docopt import docopt
 import sys
 
+
+# -----------------------------------------------------------------------------
 def main():
     o = docopt(sys.modules[__name__].__doc__)
     if o['--debug'] or o['-d']:
@@ -41,15 +47,29 @@ def main():
             f = getattr(sys.modules[__name__], "_".join(['gh', k]))
             f(sys.argv[2:])
 
+
+# -----------------------------------------------------------------------------
 def gh_list(args):
     print("called gh_list(%s)" % args)
 
+
+# -----------------------------------------------------------------------------
 def gh_install(args):
     print("called gh_install(%s)" % args)
 
+
+# -----------------------------------------------------------------------------
 def gh_show(args):
     print("called gh_show(%s)" % args)
 
+
+# -----------------------------------------------------------------------------
 def gh_remove(args):
     print("called gh_remove(%s)" % args)
 
+
+# -----------------------------------------------------------------------------
+if __name__ == '__main__':
+    sys.path.append('githooks')
+    import version
+    main()
