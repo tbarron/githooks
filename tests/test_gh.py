@@ -1,6 +1,8 @@
 import docopt
 import githooks
+from githooks import version
 import pdb
+import pexpect
 import pytest
 
 @pytest.mark.parametrize("a,b", [('list', 'install'),
@@ -77,3 +79,7 @@ def test_gh_docopt_version():
     z = docopt.docopt(githooks.__doc__, ['--version'])
     assert z == exp
     
+
+def test_gh_version():
+    z = pexpect.run("gh --version")
+    assert version.__version__ in z
