@@ -32,6 +32,7 @@ def pytest_runtest_setup(item):
         pdb.set_trace()
 
     if any([item.name in item.config.getoption('--dbg'),
+            any([x in item.name for x in item.config.getoption('--dbg')]),
             'all' in item.config.getoption('--dbg')]):
         pytest.dbgfunc = pdb.set_trace
     else:
