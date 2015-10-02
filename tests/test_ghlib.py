@@ -66,9 +66,9 @@ def test_get_version_ht_justhead(tmpdir):
     vname = 'version.py'
     pkg = os.path.join(td, 'pkg')
     os.mkdir(pkg)
-    vsh = "2010.1201."
+    vsh = "2010.1201"
     vst = "3"
-    vs = vsh + vst
+    vs = ".".join([vsh, vst])
     v = open(os.path.join(pkg, vname), 'w')
     v.write('__version__ = "%s"\n' % vs)
     v.close()
@@ -93,9 +93,9 @@ def test_get_version_ht_withtail(tmpdir):
     vname = 'version.py'
     pkg = os.path.join(td, 'pkg')
     os.mkdir(pkg)
-    vsh = "2010.1201."
+    vsh = "2010.1201"
     vst = "125"
-    vs = vsh + vst
+    vs = ".".join([vsh, vst])
     v = open(os.path.join(pkg, vname), 'w')
     v.write('__version__ = "%s"\n' % vs)
     v.close()
