@@ -280,3 +280,24 @@ def test_select_present_exact(tmpdir):
     assert exp == actual
     assert len(exp) == len(actual)
 
+
+# -----------------------------------------------------------------------------
+def test_version_v_describe(tmpdir):
+    """
+    Given matching inputs, get_version_ht() and git_describe_ht() should return
+    the same head and tail
+    """
+    pytest.dbgfunc()
+    version = "2009.0507"
+    with chdir(tmpdir.strpath):
+        z = ghlib.catch_stdout('git init')
+        v = open('version.py', 'w')
+        v.write('__version__ = "%s"\n' % version)
+        v.close()
+        z = ghlib.catch_stdout('git add version.py')
+        z = ghlib.catch_stdout('git commit -m "test commit"')
+        z = ghlib.catch_stdout('git tag -a "%s" -m "test tag"' % version)
+        (vf, vh, vt) = ghlib.get_version_ht()
+        (df, dh, dt) = ghlib.git_describe_ht()
+        assert vh == dh
+        assert vt == dt

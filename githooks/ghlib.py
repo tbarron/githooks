@@ -106,28 +106,8 @@ def get_version_ht():
     tail is the int value 0.) The head is everything else.
     """
     vs = get_version_string()
-    q = re.match("^(.*?)(\d*)$", vs)
-    head = q.groups()[0]
-    ts = q.groups()[1]
-    if ts:
-        tail = int(ts)
-    else:
-        tail = 0
+    (head, tail) = ht_parse(vs)
     return(vs, head, tail)
-
-#     """
-#     Get the version string and return the head and tail. The head is the first
-#     two segments. The tail is the third segment or the empty string if there is
-#     no third segment.
-#     """
-#     vs = get_version_string()
-#     vl = vs.split('.')
-#     head = '.'.join(vl[0:2])
-#     if 2 < len(vl):
-#         tail = int(vl[2])
-#     else:
-#         tail = 0
-#     return (vs, head, tail)
 
 
 # -----------------------------------------------------------------------------
@@ -158,12 +138,29 @@ def git_describe_ht():
     elif '-' in r:
         rl = r.split('-')
         full = '.'.join([rl[0], rl[1]])
-        head = rl[0]
-        tail = int(rl[1])
+        (head, tail) = ht_parse(full)
     else:
-        full = head = r.strip()
-        tail = 0
+        full = r.strip()
+        (head, tail) = ht_parse(full)
     return((full, head, tail))
+
+
+# -----------------------------------------------------------------------------
+def ht_parse(vstr):
+    """
+    Parse a version string into head and tail
+    """
+    rl = vstr.rsplit('.', 2)
+    if len(rl) < 2:
+        head = rl[0]
+        tail = 0
+    elif len(rl) < 3:
+        head = rl[0] + '.' + rl[1]
+        tail = 0
+    else:
+        head = rl[0] + '.' + rl[1]
+        tail = int(rl[2])
+    return(head, tail)
 
 
 # -----------------------------------------------------------------------------
