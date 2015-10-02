@@ -159,7 +159,7 @@ def ht_parse(vstr):
         tail = 0
     else:
         head = rl[0] + '.' + rl[1]
-        tail = int(rl[2])
+        tail = trailing_int(rl[2])
     return(head, tail)
 
 
@@ -214,3 +214,15 @@ def split_msg(msg):
         else:
             payload.append(l)
     return(payload, version, cid, comments)
+
+
+# -----------------------------------------------------------------------------
+def trailing_int(s):
+    """
+    Return any trailing digits from string s as an int
+    """
+    q = re.search("\d+$", s)
+    if q:
+        return int(q.group())
+    else:
+        return 0
