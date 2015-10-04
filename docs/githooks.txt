@@ -1,0 +1,59 @@
+Githooks
+========
+
+Githooks provides hook scripts that work with git.
+
+Here's a list of the scripts available as part of the package:
+
+* ``commit-msg.ver`` (linkname: ``commit-msg``)
+   Adds a version line based on a file named 'version.py' to each git
+   commit message if not already present.
+
+* ``commit-msg.chgid`` (linkname: ``commit-msg``)
+   Adds a gerrit-friendly Change-Id line to each commit message if not
+   already present.
+
+* ``commit-msg.vc`` (linkname: ``commit-msg``)
+   Adds both gerrit-friendly Change-Id and Version line to each commit
+   message if not already present.
+
+* ``pre-commit.ver`` (linkname: ``pre-commit``)
+   Checks 1) that version.py has been incremented since last commit and
+   2) that version.py is staged for the upcoming commit. This enforces a
+   version update for each commit (some folks may think this is
+   overkill).
+
+A hook management tool (gh) is also provided as part of the package::
+
+    $ gh help
+    Usage:
+       gh list
+       gh install [-g] <hookname>
+       gh show
+       gh remove <hookname>
+       gh (-d | --debug)
+       gh (-h | --help)
+       gh --version
+
+* ``gh list``
+    Lists the hooks that gh can install for you.
+
+* ``gh install [-g] <hookname>``
+    Installs the hook either in $REPO/githooks with a symlink from
+    $REPO/.git/hooks, or directly in $REPO/.git/hooks (if -g is present)
+    with a symlink in the same directory.
+
+* ``gh show``
+    Shows the hooks currently installed in the current git repo.
+
+* ``gh remove <hookname>``
+    Uninstalls hook <hookname>.
+
+* ``gh --version``
+    Report the version of the githooks package.
+
+* ``gh (-h | --help)``
+    Display a short help message (see above).
+
+* ``gh <subcommand> (-d | --debug) [opts-and-args]``
+    Run <subcommand> under the Python debugger.
