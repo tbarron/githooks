@@ -1,21 +1,21 @@
 # git hook scripts for various purposes
 
-### commit-msg.ver
+### commit-msg.ver (linkname: commit-msg)
 
 Adds a version line based on a file named 'version.py' to each git
 commit message if not already present.
 
-### commit-msg.chgid
+### commit-msg.chgid (linkname: commit-msg)
 
 Adds a gerrit-friendly Change-Id line to each commit message if not
 already present.
 
-### commit-msg.vc
+### commit-msg.vc (linkname: commit-msg)
 
 Adds both gerrit-friendly Change-Id and Version line to each commit
 message if not already present.
 
-### pre-commit.ver
+### pre-commit.ver (linkname: pre-commit)
 
 Checks 1) that version.py has been incremented since last commit and
 2) that version.py is staged for the upcoming commit.
