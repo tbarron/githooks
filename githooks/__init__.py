@@ -1,4 +1,4 @@
-"""Githooks manager
+"""git hook manager
 
 git hooks are scripts stored in $REPO/.git/hooks that git invokes at various
 points in the development cycle (before commit, after the commit message is
@@ -21,7 +21,7 @@ Usage:
 Options:
    -h --help        Provide help info (this document)
    --version        Show version
-   -g               Install hook script dire
+   -g               Install hook script in .git/hooks dir
 """
 try:
     from githooks import version

@@ -18,7 +18,9 @@ message if not already present.
 ### pre-commit.ver (linkname: pre-commit)
 
 Checks 1) that version.py has been incremented since last commit and
-2) that version.py is staged for the upcoming commit.
+2) that version.py is staged for the upcoming commit. This enforces a
+version update for each commit (some folks may think this is
+overkill).
 
 # development approach
 
@@ -62,4 +64,4 @@ Jeff sez this file should contain at least
   * a link to the project's readthedocs page (not yet)
   * A TravisCI button showing the state of the build (not yet)
   * QuickStart documentation (not yet)
-  * List of non-Python dependencies and how to install them (there aren't any)
+  * List of non-Python dependencies and how to install them (git?)

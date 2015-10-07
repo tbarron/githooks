@@ -1,9 +1,11 @@
 import docopt
-import githooks
-from githooks import version
 import pdb
 import pexpect
 import pytest
+
+import githooks
+from githooks import ghlib
+from githooks import version
 
 @pytest.mark.parametrize("a,b", [('list', 'install'),
                                  ('list', 'show'),
@@ -79,6 +81,24 @@ def test_gh_docopt_version():
     z = docopt.docopt(githooks.__doc__, ['--version'])
     assert z == exp
     
+
+# -----------------------------------------------------------------------------
+def test_pydoc_gh():
+    """
+    Ensure 'pydoc gh' produces something reasonable
+    """
+    r = ghlib.catch_stdout('pydoc githooks')
+    assert 'git hook manage' in r
+    assert 'gh list' in r
+
+
+# -----------------------------------------------------------------------------
+# def test_gh_list():
+#     """
+#     Test for 'gh list'
+#     """
+#     r = ghlib.catch_stdout('gh list')
+
 
 def test_gh_version():
     z = pexpect.run("gh --version")
