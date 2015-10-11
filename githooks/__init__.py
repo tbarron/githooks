@@ -49,8 +49,16 @@ def main():
 
 
 # -----------------------------------------------------------------------------
-def gh_list(args):
-    print("called gh_list(%s)" % args)
+def gh_list(opts):
+    """
+    gh list displays a list of available hook routines that can be installed
+
+    Usage:
+       gh list [-d | --debug]
+    """
+    hd = hookdict()
+    for k in hd:
+        print("%s: %s" % (k, hd[k]))
 
 
 # -----------------------------------------------------------------------------
@@ -90,6 +98,63 @@ def hookdict():
         rv[n] = hd[k]
 
     return rv
+
+
+# -----------------------------------------------------------------------------
+def hook_commit_msg_ver():
+    """
+    commit-msg.ver - Makes sure a version appears in the commit message
+
+    After you write your commit message, this hook will scan it and add a line
+    like
+
+        Version:   A.B.C
+
+    if one is not already present.
+    """
+    print("hook code to be installed")
+
+
+# -----------------------------------------------------------------------------
+def hook_commit_msg_vc():
+    """commit-msg.vc - Ensure commit message contains a version and change id
+
+    After you write your commit message, this hook will scan it and add lines
+    like
+
+        Version:   A.B.C
+        ChangeId:  <hash value>
+
+    if they are not already present.
+    """
+    print("hook code to be installed")
+
+
+# -----------------------------------------------------------------------------
+def hook_commit_msg_chgid():
+    """commit-msg.chgid - Ensure commit message contains a change id
+
+    After you write your commit message, this hook will scan it and add a line
+    like
+
+        ChangeId:  <hash value>
+
+    if one is not already present.
+    """
+    print("hook code to be installed")
+
+
+# -----------------------------------------------------------------------------
+def hook_pre_commit_ver():
+    """pre-commit.ver - Verify version.py
+
+    With this hook installed, when you run 'git commit', before starting your
+    editor on the commit message, git will check that version.py exists, has
+    been updated since the last commit, and is staged. If any of those
+    conditions are not satisfied, pre-commit.ver will put out a message
+    explaining the problem and asking you to correct it.
+    """
+    print("hook code to be installed")
 
 
 # -----------------------------------------------------------------------------
