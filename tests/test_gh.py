@@ -7,6 +7,17 @@ import githooks
 from githooks import ghlib
 from githooks import version
 
+# -----------------------------------------------------------------------------
+def test_hookdict():
+    """Test hookdict(): returns a dict of available hook functions
+    """
+    hd = githooks.hookdict()
+    for k in ['commit-msg.ver', 'commit-msg.vc', 'commit-msg.chgid', 'pre-commit.ver']:
+        assert k in hd
+        assert hd[k]
+
+
+# -----------------------------------------------------------------------------
 @pytest.mark.parametrize("a,b", [('list', 'install'),
                                  ('list', 'show'),
                                  ('list', 'remove'),

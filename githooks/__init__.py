@@ -69,6 +69,30 @@ def gh_remove(args):
 
 
 # -----------------------------------------------------------------------------
+def hookdict():
+    """
+    Generate and return a dict of hook routines that looks like:
+
+        {'commit-msg.ver': <function-object>,
+         'pre-commit.ver': <function-object>',
+         ...
+         }
+
+    Hook function name must start with 'hook_'. First word in __doc__ must be
+    the installable name of the hook (commit-msg.ver, pre-commit.ver, etc.)
+    """
+    md = inspect.getmembers(sys.modules[__name__], inspect.isfunction)
+    hd = dict([(k, v) for k, v in md if k.startswith('hook_')])
+    rv = {}
+    for k in hd:
+        d = hd[k].__doc__
+        n = d.strip().split()[0]
+        rv[n] = hd[k]
+
+    return rv
+
+
+# -----------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.path.append('githooks')
     import version
