@@ -104,13 +104,26 @@ def test_pydoc_gh():
 
 
 # -----------------------------------------------------------------------------
-# def test_gh_list():
-#     """
-#     Test for 'gh list'
-#     """
-#     r = ghlib.catch_stdout('gh list')
+def test_gh_list():
+    """Test for 'gh list'
+    """
+    pytest.dbgfunc()
+    r = ghlib.catch_stdout('gh list')
+    for h in hooklist():
+        assert h in r
 
 
 def test_gh_version():
     z = pexpect.run("gh --version")
     assert version.__version__ in z
+
+
+# -----------------------------------------------------------------------------
+def hooklist():
+    """Generator to return the names of the canonical hooks
+    """
+    for h in ['commit-msg.ver',
+              'commit-msg.vc',
+              'commit-msg.chgid',
+              'pre-commit.ver']:
+        yield h
