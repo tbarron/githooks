@@ -10,11 +10,11 @@ into $REPO/githooks. With the -d option on the install command, it will put the
 script directly in $REPO/.git/hooks.
 
 Usage:
-   gh list
-   gh install [-g] <hookname>
-   gh show
-   gh remove <hookname>
-   gh (-d | --debug)
+   gh list [(-d | --debug)]
+   gh freeze [(-d | --debug)] <filename>
+   gh install  [(-d | --debug)] [-g] <hookname>
+   gh show [(-d | --debug)]
+   gh remove  [(-d | --debug)] <hookname>
    gh (-h | --help)
    gh --version
 
@@ -23,17 +23,21 @@ Options:
    --version        Show version
    -g               Install hook script in .git/hooks dir
 """
-try:
-    from githooks import version
-except:
-    pass
+import inspect
 import pdb
 from docopt import docopt
 import sys
 
+try:
+    from githooks import version
+except:
+    pass
+
 
 # -----------------------------------------------------------------------------
 def main():
+    """Entrypoint
+    """
     o = docopt(sys.modules[__name__].__doc__)
     if o['--debug'] or o['-d']:
         pdb.set_trace()
@@ -42,10 +46,9 @@ def main():
         print(version.__version__)
         sys.exit()
 
-    for k in ['list', 'install', 'show', 'remove']:
-        if o[k]:
-            f = getattr(sys.modules[__name__], "_".join(['gh', k]))
-            f(sys.argv[2:])
+    for k in (_ for _ in o.keys() if _[0] not in ('-', '<') and o[_]):
+        f = getattr(sys.modules[__name__], "_".join(['gh', k]))
+        f(sys.argv[2:])
 
 
 # -----------------------------------------------------------------------------
@@ -63,6 +66,7 @@ def gh_list(opts):
 
 # -----------------------------------------------------------------------------
 def gh_install(args):
+    hd = hookdict()
     print("called gh_install(%s)" % args)
 
 

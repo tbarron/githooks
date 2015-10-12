@@ -12,7 +12,7 @@ def test_hookdict():
     """Test hookdict(): returns a dict of available hook functions
     """
     hd = githooks.hookdict()
-    for k in ['commit-msg.ver', 'commit-msg.vc', 'commit-msg.chgid', 'pre-commit.ver']:
+    for k in hooklist():
         assert k in hd
         assert hd[k]
 
@@ -31,6 +31,7 @@ def test_gh_docopt(a, b):
     assert 'DocoptExit: Usage:' in str(e)
 
 
+# -----------------------------------------------------------------------------
 def template(**kw):
     rv = {'--debug': False,
           '--help': False,
@@ -38,6 +39,8 @@ def template(**kw):
           '-d': False,
           '-g': False,
           '<hookname>': None,
+          '<filename>': None,
+          'freeze': False,
           'install': False,
           'list': False,
           'remove': False,
@@ -47,7 +50,9 @@ def template(**kw):
     return rv
 
 
+# -----------------------------------------------------------------------------
 def test_gh_docopt_list(capsys):
+    pytest.dbgfunc()
     exp = template(list=True)
     z = docopt.docopt(githooks.__doc__, ['list'])
     assert z == exp
@@ -55,6 +60,7 @@ def test_gh_docopt_list(capsys):
 #         assert z[k] == (k == 'list')
 
 
+# -----------------------------------------------------------------------------
 @pytest.mark.parametrize(('argl', 'adj'),
                          [(['list'],
                            {'list': True}),
@@ -73,6 +79,8 @@ def test_gh_docopt_good(argl, adj):
     z = docopt.docopt(githooks.__doc__, argl)
     assert z == exp
 
+
+# -----------------------------------------------------------------------------
 @pytest.mark.parametrize(('argl'),
                          [['list', 'install'],
                           ['--ack'],
@@ -84,14 +92,15 @@ def test_gh_docopt_bad(argl):
     with pytest.raises(docopt.DocoptExit) as e:
         z = docopt.docopt(githooks.__doc__, argl)
     assert 'DocoptExit: Usage:' in str(e)
-        
 
+
+# -----------------------------------------------------------------------------
 def test_gh_docopt_version():
     exp = template()
     exp['--version'] = True
     z = docopt.docopt(githooks.__doc__, ['--version'])
     assert z == exp
-    
+
 
 # -----------------------------------------------------------------------------
 def test_pydoc_gh():
@@ -113,7 +122,10 @@ def test_gh_list():
         assert h in r
 
 
+# -----------------------------------------------------------------------------
 def test_gh_version():
+    """Verify that 'gh --version' works
+    """
     z = pexpect.run("gh --version")
     assert version.__version__ in z
 
